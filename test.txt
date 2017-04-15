@@ -1,3 +1,88 @@
-add test
-add cc
-add  changes1
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <base href="<%=basePath%>">
+    
+    <title>My JSP 'index.jsp' starting page</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+	<script src="js/jquery.js" ></script>
+	
+  </head>
+ <body>
+ <input id="btnClick" type="button" value="原生写法" class="btn-green radius" />
+     <div id="pop" class="centerDiv radius" style="width: 260px; height: 100px; border:1px solid #ddd; background:#f7f7f7; color:#000;">
+          <input type="checkbox" />aa
+          <input type="checkbox" />aa
+          <input type="checkbox" />aa
+          <input type="checkbox" />aa
+     </div>
+<input type="checkbox" />aa
+          <input type="checkbox" />aa
+ 
+</body>
+<script type="text/JavaScript">
+       
+        //点击#btnClick时要阻止冒泡，否则.pop是不显示的，
+        //因为冒泡了，会执行到下面的方法。
+    /*     function stopPropagation(e) {
+            var ev = e || window.event;
+            if (ev.stopPropagation) {
+                ev.stopPropagation();
+            }
+            else if (window.event) {
+                window.event.cancelBubble = true;//兼容IE
+            }
+        } */
+        
+        function stopPropagation(ev){
+        console.log(ev.stopPropagation);
+		    if(ev&&ev.stopPropagation){
+		        ev.stopPropagation();
+		    }else{
+		        window.event.cancelBubble=true;
+		    }
+		}
+        
+        $("#btnClick").click(function (e) {
+            $("#pop").show();
+            stopPropagation(e);
+        });
+        $(document).bind('click', function () {
+            $("#pop").hide();
+        });
+        $("#pop").click(function (e) {
+            stopPropagation(e);
+        });
+    </script>
+  
+  
+  
+  
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
