@@ -1,5 +1,229 @@
-add a.txt
-Creating a new branch is quick.
-test123123123
-aaaa
-stash
+上一篇讲了jQuery-datatable的基本参数配置，并且讲了一个小demo。下面讲jquery-datatable之服务器分页。
+
+jquery-datatable的官方网站讲了很多例子，但是没有给出一个完成的服务端分页的例子，网上有很多这方面的例子，但是写的都不完成，所以导致很多开发不能体会到其强大的能力。下面将会介绍jquery-datatable+springMVC的一个完成例子：
+
+首页，直接上js代码：
+
+ 
+
+[javascript] view plain copy print?
+$("#sample_editable_1")  
+  
+                    .dataTable(  
+  
+                            {  
+  
+                                "bPaginate" : true,// 分页按钮  
+  
+                                "bFilter" : true,// 搜索栏  
+  
+                                "bLengthChange" : 10,// 每行显示记录数  
+  
+                                "iDisplayLength" : 10,// 每页显示行数  
+  
+                                "bSort" : true,// 排序  
+  
+                                "bInfo" : true,// Showing 1 to 10 of 23 entries  
+  
+                                "bAutoWidth" : true, // 自动计算列宽度  
+  
+                                "sPaginationType" : "full_numbers", // 分页，一共两种样式  
+  
+                                "bProcessing" : true,  
+  
+                                "bServerSide" : true,  
+  
+                                "bDestroy" : true,  
+  
+                                "bStateSave" : true,  
+  
+                                "sDom" : "<'row-fluid'<'span6'l><'span6'f>r>t<'row-fluid'<'span6'i><'span6'p>>",  
+  
+                                "sPaginationType" : "bootstrap",  
+  
+                                "sAjaxSource" : "ajax-role.shtml?rand="  
+  
+                                        + Math.random(),  
+  
+                                "fnServerData" : retrieveData,  
+  
+                                "aaSorting" : [ [ 0, "asc" ] ],  
+  
+                                "aoColumns" : [  
+  
+                                        {  
+  
+                                            "mDataProp" : "id",  
+  
+                                            "bSortable" : true  
+  
+                                        },  
+  
+   
+  
+                                        {  
+  
+                                            "mDataProp" : "code",  
+  
+                                            "bSortable" : false  
+  
+                                        },  
+  
+                                        {  
+  
+                                            "mDataProp" : "name"  
+  
+                                        },  
+  
+                                        {  
+  
+                                            "mDataProp" : "",  
+  
+                                            "fnRender" : function(obj) {  
+  
+                                                var sReturn = '<a class="edit" data-toggle="modal"  href ="#myModal">Edit</a>';  
+  
+                                                return sReturn;  
+  
+                                            }  
+  
+                                        },  
+  
+                                        {  
+  
+                                            "mDataProp" : "",  
+  
+                                            "fnRender" : function(obj) {  
+  
+                                                var sReturn = '<a class="delete" href = "javascript:;">Delete</a>';  
+  
+                                                return sReturn;  
+  
+                                            }  
+  
+                                        }  
+  
+   
+  
+                                ],  
+  
+                                "oLanguage" : {  
+  
+                                    "sLengthMenu" : "显示 _MENU_ 条 ",  
+  
+                                    "sZeroRecords" : "没有您要搜索的内容",  
+  
+                                    "sInfo" : "从 _START_  到  _END_ 条记录——总记录数为 _TOTAL_ 条",  
+  
+                                    "sInfoEmpty" : "记录数为0",  
+  
+                                    "sInfoFiltered" : "(全部记录数 _MAX_ 条)",  
+  
+                                    "sInfoPostFix" : "",  
+  
+                                    "sSearch" : "搜索",  
+  
+                                    "oPaginate" : {  
+  
+                                        "sFirst" : "第一页",  
+  
+                                        "sPrevious" : " 上一页 ",  
+  
+                                        "sNext" : " 下一页 ",  
+  
+                                        "sLast" : " 最后一页 "  
+  
+                                    }  
+  
+                                }  
+  
+                            });  
+  
+function retrieveData(sSource, aoData, fnCallback) {  
+  
+    $.ajax({  
+  
+        "type" : "POST",  
+  
+        "contentType" : "application/json",  
+  
+        "url" : sSource,  
+  
+        "dataType" : "json",  
+  
+        "data" : JSON.stringify(aoData),  
+  
+        "success" : fnCallback  
+  
+    });  
+  
+}  
+
+以上代码，大家读了我写的第一节，就会很自然的明白了，这里主要是sAjaxSource，这是请求服务端的地址。必须要的。
+
+下面上Java代码：
+
+ 
+
+[java] view plain copy print?
+@RequestMapping(value="ajax-role",method = RequestMethod.POST)  
+  
+    @ResponseBody  
+  
+    public Object ajaxRole(@RequestBody List<Object>param) throws IOException{  
+  
+        DataTableParameter data =new DataTableParameter();  
+  
+       Map<String,Object>map =ObjectConvertMap.convertToMap(param);  
+  
+      List<Role>roles =Lists.newArrayList();  
+  
+      roles =roleService.getRoles(map);  
+  
+      Long totalCount =roleService.getRoleTotalNumber(map)；  
+  
+      data.setAaData(roles);  
+  
+      data.setiTotalDisplayRecords(totalCount);  
+  
+      data.setiTotalRecords(totalCount);  
+  
+      data.setsEcho(map.get("sEcho")+"");  
+  
+      return data;  
+  
+    }  
+
+
+List<Object>param是接受到的参数集合（"data" : JSON.stringify(aoData)）这里一个list的集合，首先将其装换成一个map
+
+ public static Map<String,Object>convertToMap(List<Object>list){
+        Map<String,Object>map =Maps.newHashMap();
+        for(Object ob:list){
+            Map<String,Object> param =(Map<String, Object>) ob;
+          map.put(param.get("name")+"",param.get("value"));
+        }
+        return map;
+    }
+
+然后进行具体的业务逻辑，获取数据。注意：
+
+map里面的两个主要参数iDisplayStart ，iDisplayLength（从第几条开始显示，显示的长度）
+
+这两个参数是分页用到的参数
+
+返回数据
+
+DataTableParameter是对参数的封装
+
+    private static final long serialVersionUID = 1L;
+
+    private String sEcho;
+
+    private Long iTotalRecords;
+
+    private Long iTotalDisplayRecords;
+
+    private List<?>aaData =Lists.newArrayList();
+
+以上属性必须要有，并且属性名称也要一致，否则js无法解析
